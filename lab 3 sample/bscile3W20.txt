@@ -1,0 +1,61 @@
+# Setup
+c-->from imp import reload
+c-->import exam
+c-->reload(exam)
+c-->from exam import prev_n, all_odd, min_cuts_odd, check_dict
+c-->from ile3helper import ints, primes, hide, nth, nth_for_m, is_prime
+c-->from inspect import isgeneratorfunction, isgenerator
+c-->def odd_count_criteria(s : str) -> bool: return all(all_odd(part) for part in s.split('|'))
+
+# Test prev_n: 3 finite, 3 infinite
+e-->all([isgeneratorfunction(prev_n), isgenerator(prev_n('',3,lambda x : x))])-->True
+e-->list(prev_n('a.bcde.f.g.hijk',2,lambda x:x=='.'))-->[['a', '.'], ['e', '.'], ['f', '.'], ['g', '.']]
+e-->list(prev_n(hide('ab.defghi.klmn.pqrst.vwz.z'),5,lambda x : x=='.'))-->[['a', 'b', '.'], ['f', 'g', 'h', 'i', '.'], ['k', 'l', 'm', 'n', '.'], ['q', 'r', 's', 't', '.'], ['.', 'v', 'w', 'z', '.']]
+e-->list(prev_n(hide([1,2,3,4,5,6,7,8,9]),3,lambda x : x%2==1))-->[[1], [1, 2, 3], [3, 4, 5], [5, 6, 7], [7, 8, 9]]
+e-->nth(prev_n(ints(),5,is_prime),10)-->[25, 26, 27, 28, 29]
+e-->nth_for_m(prev_n(ints(),5,is_prime),200,3)-->[[1219, 1220, 1221, 1222, 1223], [1225, 1226, 1227, 1228, 1229], [1227, 1228, 1229, 1230, 1231]]
+e-->nth_for_m(prev_n(ints(),5,lambda x : is_prime(x) and x%100==13),10,3)-->[[2209, 2210, 2211, 2212, 2213], [2709, 2710, 2711, 2712, 2713], [3309, 3310, 3311, 3312, 3313]]
+
+# Test all_odd helper
+e-->all_odd('')-->True
+e-->all_odd('a')-->True
+e-->all_odd('aa')-->False
+e-->all_odd('abca')-->False
+e-->all_odd('cabcaabcb')-->True
+e-->all_odd('cabbaabcb')-->False
+
+# Test min_cuts_odd: each test is a 3-TUPLE
+#   Left: odd-count criteria; middle: string without | is the same; Right: minimum criteria
+==-->odd_count_criteria(min_cuts_odd('')),min_cuts_odd('').replace('|',''),min_cuts_odd('').count('|')-->True,'',0
+==-->odd_count_criteria(min_cuts_odd('a')),min_cuts_odd('a').replace('|',''),min_cuts_odd('a').count('|')-->True,'a',0
+==-->odd_count_criteria(min_cuts_odd('aaa')),min_cuts_odd('aaa').replace('|',''),min_cuts_odd('aaa').count('|')-->True,'aaa',0
+==-->odd_count_criteria(min_cuts_odd('aa')),min_cuts_odd('aa').replace('|',''),min_cuts_odd('aa').count('|')-->True,'aa',1
+==-->odd_count_criteria(min_cuts_odd('aba')),min_cuts_odd('aba').replace('|',''),min_cuts_odd('aba').count('|')-->True,'aba',1
+==-->odd_count_criteria(min_cuts_odd('ababa')),min_cuts_odd('ababa').replace('|',''),min_cuts_odd('ababa').count('|')-->True,'ababa',2
+==-->odd_count_criteria(min_cuts_odd('aaaabb')),min_cuts_odd('aaaabb').replace('|',''),min_cuts_odd('aaaabb').count('|')-->True,'aaaabb',2
+==-->odd_count_criteria(min_cuts_odd('bcaabcab')),min_cuts_odd('bcaabcab').replace('|',''),min_cuts_odd('bcaabcab').count('|')-->True,'bcaabcab',2
+==-->odd_count_criteria(min_cuts_odd('bacacababa')),min_cuts_odd('bacacababa').replace('|',''),min_cuts_odd('bacacababa').count('|')-->True,'bacacababa',2
+==-->odd_count_criteria(min_cuts_odd('aacbbcca')),min_cuts_odd('aacbbcca').replace('|',''),min_cuts_odd('aacbbcca').count('|')-->True,'aacbbcca',3
+==-->odd_count_criteria(min_cuts_odd('bbaabccbba')),min_cuts_odd('bbaabccbba').replace('|',''),min_cuts_odd('bbaabccbba').count('|')-->True,'bbaabccbba',4
+==-->odd_count_criteria(min_cuts_odd('bbccbbaacc')),min_cuts_odd('bbccbbaacc').replace('|',''),min_cuts_odd('bbccbbaacc').count('|')-->True,'bbccbbaacc',5
+# Test check_dict
+c-->d = check_dict(lambda x : type(x) is str, lambda x : type(x) is int and x >= 0)
+c-->d['a'] = 1       # legal key and value
+c-->d[2] = 2         # illegal key
+c-->d['z'] = -1      # illegal value
+c-->d[2] = 2.5       # illegal key and value
+==-->d-->{'a': 1}
+==-->d['a']-->1
+^-->d[2]-->KeyError
+==-->d(2)-->2.5
+==-->d('z')-->-1
+^-->d(5)-->KeyError
+==-->[kv for kv in d.iter_errors()]-->[(2, [2, 2.5]), ('z', [-1])]
+
+# Test check_dict: extra credit
+c-->d2 = check_dict(lambda x : type(x) is str, lambda x : type(x) is int and x >= 0, [('a',1),(2,2)],b=2,c=-3)
+==-->d2-->{'a': 1, 'b': 2}
+==-->[kv for kv in d2.iter_errors()]-->[(2, [2]), ('c', [-3])]
+c-->d2 = check_dict(lambda x : type(x) is str, lambda x : type(x) is int and x >= 0, {'a':1,2:2},b=2,c=-3)
+==-->d2-->{'a': 1, 'b': 2}
+==-->[kv for kv in d2.iter_errors()]-->[(2, [2]), ('c', [-3])]
